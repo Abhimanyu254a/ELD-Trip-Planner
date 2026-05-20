@@ -3,119 +3,111 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Navigation, Clock, Truck, FileText, AlertTriangle } from 'lucide-react';
 
 // --- HOS Business Logic Engine ---
-const calculateHOSLogs = (
-  routeDurationHours,
-  routeDistanceMiles,
-  startCycleHours
-) => {
-  const logs = [];
+const calculateHOSLogs = (routeDurationHours,routeDistanceMiles,startCycleHours) => {
+    const logs = [];
 
-  let day = 1;
-  let currentHour = 0;
+    let day = 1;
+    let currentHour = 0;
 
-  let remainingDriveHours = routeDurationHours;
-  let cycleHoursUsed = Number(startCycleHours) || 0;
+    let remainingDriveHours = routeDurationHours;
+    let cycleHoursUsed = Number(startCycleHours) || 0;
 
-  let availableDriveHours = 11;
-  let availableShiftHours = 14;
-  let availableBreakHours = 8;
+    let availableDriveHours = 11;
+    let availableShiftHours = 14;
+    let availableBreakHours = 8;
 
-  let milesSinceLastFuelStop = 0;
-  const averageSpeed = 60;
+    let milesSinceLastFuelStop = 0;
+    const averageSpeed = 60;
 
-  const addLog = (status, duration) => {
+    const addLog = (status, duration) => {
     let remainingDuration = duration;
 
     while (remainingDuration > 0) {
-      const hoursLeftToday = 24 - currentHour;
-      const segmentHours = Math.min(
+        const hoursLeftToday = 24 - currentHour;
+        const segmentHours = Math.min(
         remainingDuration,
         hoursLeftToday
-      );
+    );
 
-      logs.push({
-        day,
-        startHour: currentHour,
-        endHour: currentHour + segmentHours,
-        status,
-      });
+        logs.push({
+            day,
+            startHour: currentHour,
+            endHour: currentHour + segmentHours,
+            status,
+        });
 
-      if (status === "drive") {
-        availableDriveHours -= segmentHours;
-        availableShiftHours -= segmentHours;
-        availableBreakHours -= segmentHours;
-        cycleHoursUsed += segmentHours;
-      }
+        if (status === "drive") {
+            availableDriveHours -= segmentHours;
+            availableShiftHours -= segmentHours;
+            availableBreakHours -= segmentHours;
+            cycleHoursUsed += segmentHours;
+        }
 
-      if (status === "on") {
-        availableShiftHours -= segmentHours;
-        cycleHoursUsed += segmentHours;
-      }
+        if (status === "on") {
+            availableShiftHours -= segmentHours;
+            cycleHoursUsed += segmentHours;
+        }
 
-      currentHour += segmentHours;
-      remainingDuration -= segmentHours;
+        currentHour += segmentHours;
+        remainingDuration -= segmentHours;
 
-      if (currentHour >= 24) {
-        currentHour = 0;
-        day++;
-      }
-    }
-  };
+        if (currentHour >= 24) {
+            currentHour = 0;
+            day++;
+        }}
+    };
 
-  addLog("on", 1);
+addLog("on", 1);
 
-  while (remainingDriveHours > 0) {
-    if (milesSinceLastFuelStop >= 900) {
-      addLog("on", 0.5);
-      milesSinceLastFuelStop = 0;
-      continue;
+while (remainingDriveHours > 0) {
+if (milesSinceLastFuelStop >= 900) {
+    addLog("on", 0.5);
+    milesSinceLastFuelStop = 0;
+    continue;
     }
 
     if (cycleHoursUsed >= 70) {
-      addLog("off", 34);
+        addLog("off", 34);
 
-      cycleHoursUsed = 0;
-      availableDriveHours = 11;
-      availableShiftHours = 14;
-      availableBreakHours = 8;
+        cycleHoursUsed = 0;
+        availableDriveHours = 11;
+        availableShiftHours = 14;
+        availableBreakHours = 8;
 
-      continue;
+        continue;
     }
 
-    if (
-      availableDriveHours <= 0 ||
-      availableShiftHours <= 0
-    ) {
-      addLog("sleeper", 10);
+    if (availableDriveHours <= 0 ||availableShiftHours <= 0) {
+    addLog("sleeper", 10);
 
-      availableDriveHours = 11;
-      availableShiftHours = 14;
-      availableBreakHours = 8;
+    availableDriveHours = 11;
+    availableShiftHours = 14;
+    availableBreakHours = 8;
 
-      continue;
+    continue;
     }
 
     if (availableBreakHours <= 0) {
-      addLog("off", 0.5);
-      availableBreakHours = 8;
-      continue;
+        addLog("off", 0.5);
+        availableBreakHours = 8;
+        continue;
     }
 
     const hoursUntilFuelStop =
-      (1000 - milesSinceLastFuelStop) /
-      averageSpeed;
+        (1000 - milesSinceLastFuelStop) /
+        averageSpeed;
 
     let drivingBlock = Math.min(
-      remainingDriveHours,
-      availableDriveHours,
-      availableShiftHours,
-      availableBreakHours,
-      hoursUntilFuelStop,
-      70 - cycleHoursUsed
+        remainingDriveHours,
+        availableDriveHours,
+        availableShiftHours,
+        availableBreakHours,
+        hoursUntilFuelStop,
+        70 - cycleHoursUsed
     );
 
     if (drivingBlock < 0.01) {
-      drivingBlock = 0.01;
+        drivingBlock = 0.01;
     }
 
     addLog("drive", drivingBlock);
@@ -127,23 +119,23 @@ const calculateHOSLogs = (
 
   addLog("on", 1);
 
-  const groupedLogs = {};
+const groupedLogs = {};
 
-  logs.forEach((log) => {
+logs.forEach((log) => {
     if (!groupedLogs[log.day]) {
-      groupedLogs[log.day] = [];
+    groupedLogs[log.day] = [];
     }
 
     groupedLogs[log.day].push(log);
-  });
+});
 
-  return groupedLogs;
+    return groupedLogs;
 };
 
 const LogSheet = ({ dayNumber, logs }) => {
-  const canvasRef = useRef(null);
+const canvasRef = useRef(null);
 
-  useEffect(() => {
+useEffect(() => {
     const canvas = canvasRef.current;
 
     if (!canvas) return;
@@ -154,10 +146,10 @@ const LogSheet = ({ dayNumber, logs }) => {
     const canvasHeight = canvas.height;
 
     ctx.clearRect(
-      0,
-      0,
-      canvasWidth,
-      canvasHeight
+        0,
+        0,
+        canvasWidth,
+        canvasHeight
     );
 
     const leftMargin = 80;
@@ -171,17 +163,17 @@ const LogSheet = ({ dayNumber, logs }) => {
     const hourWidth = gridWidth / 24;
 
     const statuses = [
-      "off",
-      "sleeper",
-      "drive",
-      "on",
+    "off",
+    "sleeper",
+    "drive",
+    "on",
     ];
 
     const labels = [
-      "1. Off Duty",
-      "2. Sleeper Berth",
-      "3. Driving",
-      "4. On Duty",
+    "1. Off Duty",
+    "2. Sleeper Berth",
+    "3. Driving",
+    "4. On Duty",
     ];
 
     ctx.lineWidth = 1;
@@ -190,19 +182,19 @@ const LogSheet = ({ dayNumber, logs }) => {
     ctx.font = "10px Arial";
 
     ctx.fillRect(
-      leftMargin,
-      topMargin - 20,
-      gridWidth,
-      20
+    leftMargin,
+    topMargin - 20,
+    gridWidth,
+    20
     );
 
     ctx.fillStyle = "#ffffff";
 
     ctx.fillText(
-      "Midnight",
-      leftMargin + 2,
-      topMargin - 6
-    );
+    "Midnight",
+    leftMargin + 2,
+    topMargin - 6
+);
 
     ctx.fillText(
       "Noon",
@@ -211,11 +203,11 @@ const LogSheet = ({ dayNumber, logs }) => {
     );
 
     for (let hour = 1; hour <= 11; hour++) {
-      ctx.fillText(
+    ctx.fillText(
         hour,
         leftMargin + hour * hourWidth - 4,
         topMargin - 6
-      );
+    );
 
       ctx.fillText(
         hour,
@@ -231,43 +223,43 @@ const LogSheet = ({ dayNumber, logs }) => {
     for (let row = 0; row < 4; row++) {
       const y = topMargin + row * rowHeight;
 
-      ctx.font = "bold 11px Arial";
-      ctx.fillText(labels[row], 5, y + 18);
+    ctx.font = "bold 11px Arial";
+    ctx.fillText(labels[row], 5, y + 18);
 
-      ctx.beginPath();
-      ctx.moveTo(leftMargin, y);
-      ctx.lineTo(
+    ctx.beginPath();
+    ctx.moveTo(leftMargin, y);
+    ctx.lineTo(
         canvasWidth - rightMargin,
         y
-      );
-      ctx.stroke();
+    );
+    ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(leftMargin, y + rowHeight);
-      ctx.lineTo(
+    ctx.beginPath();
+    ctx.moveTo(leftMargin, y + rowHeight);
+    ctx.lineTo(
         canvasWidth - rightMargin,
         y + rowHeight
-      );
-      ctx.stroke();
+    );
+    ctx.stroke();
     }
 
     for (let hour = 0; hour <= 24; hour++) {
-      const x =
+    const x =
         leftMargin + hour * hourWidth;
 
-      ctx.beginPath();
-      ctx.moveTo(x, topMargin);
-      ctx.lineTo(
+    ctx.beginPath();
+    ctx.moveTo(x, topMargin);
+    ctx.lineTo(
         x,
         topMargin + rowHeight * 4
-      );
+    );
 
-      ctx.strokeStyle =
+    ctx.strokeStyle =
         hour % 12 === 0
-          ? "#475569"
-          : "#cbd5e1";
+        ? "#475569"
+        : "#cbd5e1";
 
-      ctx.stroke();
+    ctx.stroke();
 
         if (hour < 24) {
             const halfHourX =
@@ -420,7 +412,7 @@ export default function App() {
 
     try {
       // 1. Geocode locations
-        const start = await geocode(currentLoc || pickupLoc); // If current empty, start at pickup
+        const start = await geocode(currentLoc || pickupLoc);
         const pickup = await geocode(pickupLoc);
         const dropoff = await geocode(dropoffLoc);
 
@@ -434,8 +426,8 @@ export default function App() {
         if (rData.code !== 'Ok') throw new Error('Route calculation failed.');
 
         const routeInfo = rData.routes[0];
-        const distanceMiles = routeInfo.distance * 0.000621371; // meters to miles
-        const durationHours = routeInfo.duration / 3600; // seconds to hours
+        const distanceMiles = routeInfo.distance * 0.000621371; 
+        const durationHours = routeInfo.duration / 3600; 
 
         setRouteData({
             distance: distanceMiles.toFixed(1),
@@ -472,161 +464,161 @@ export default function App() {
     } finally {
         setLoading(false);
     }
-  };
+};
 
-  return (
+return (
     <div className="max-w-full min-h-screen bg-zinc-950 font-sans text-zinc-100">
-      {/* Header */}
-      <header className="bg-zinc-900 text-white px-6 py-4 shadow-md flex items-center justify-between border-b border-zinc-800">
+    {/* Header */}
+    <header className="bg-zinc-900 text-white px-6 py-4 shadow-md flex items-center justify-between border-b border-zinc-800">
         <div className="flex items-center gap-3">
-          <Truck className="text-blue-400" size={28} />
-          <h1 className="text-xl font-bold tracking-tight">ELD Trip Planner <span className="text-slate-400 font-normal text-sm ml-2">v1.0.0</span></h1>
+        <Truck className="text-blue-400" size={28} />
+        <h1 className="text-xl font-bold tracking-tight">ELD Trip Planner <span className="text-slate-400 font-normal text-sm ml-2">v1.0.0</span></h1>
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-300">
-          <Clock size={16} />
-          <span>70hr/8day Property</span>
+        <Clock size={16} />
+        <span>70hr/8day Property</span>
         </div>
-      </header>
+    </header>
 
-      <main className="max-w-full mx-4 sm:mx-10 md:mx-20 my-10 rounded-2xl p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 bg-zinc-900 border border-zinc-800 shadow-xl">
+    <main className="max-w-full mx-4 sm:mx-10 md:mx-20 my-10 rounded-2xl p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 bg-zinc-900 border border-zinc-800 shadow-xl">
         
         {/* Left Column: Form & Stats */}
         <div className="lg:col-span-4 max-w-full space-y-6">
-          <div className="bg-zinc-950 p-6 rounded-xl border border-zinc-850 shadow-inner">
+        <div className="bg-zinc-950 p-6 rounded-xl border border-zinc-850 shadow-inner">
             <h2 className="text-lg font-bold mb-6 text-zinc-100 flex items-center gap-2 border-b border-zinc-800 pb-3">
-              <Navigation className="text-blue-500 animate-pulse" size={24} />
-              Dispatch Parameters
+            <Navigation className="text-blue-500 animate-pulse" size={24} />
+            Dispatch Parameters
             </h2>
             
             <form onSubmit={planTrip} className="space-y-5">
-              <div>
+            <div>
                 <label className="block text-sm font-semibold text-zinc-200 mb-1">Current Location (Optional)</label>
                 <input 
-                  type="text" 
-                  value={currentLoc}
-                  onChange={(e) => setCurrentLoc(e.target.value)}
-                  placeholder="e.g., Chicago, IL"
-                  className="w-full px-3 py-2 bg-zinc-900 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                type="text" 
+                value={currentLoc}
+                onChange={(e) => setCurrentLoc(e.target.value)}
+                placeholder="e.g., Chicago, IL"
+                className="w-full px-3 py-2 bg-zinc-900 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
-              </div>
+            </div>
 
-              <div>
+            <div>
                 <label className="block text-sm font-semibold text-zinc-200 mb-1">Pickup Location *</label>
                 <input 
-                  type="text" 
-                  required
-                  value={pickupLoc}
-                  onChange={(e) => setPickupLoc(e.target.value)}
-                  placeholder="e.g., Dallas, TX"
-                  className="w-full px-3 py-2 bg-zinc-900 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                type="text" 
+                required
+                value={pickupLoc}
+                onChange={(e) => setPickupLoc(e.target.value)}
+                placeholder="e.g., Dallas, TX"
+                className="w-full px-3 py-2 bg-zinc-900 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
-              </div>
+            </div>
 
-              <div>
+            <div>
                 <label className="block text-sm font-semibold text-zinc-200 mb-1">Dropoff Location *</label>
                 <input 
-                  type="text" 
-                  required
-                  value={dropoffLoc}
-                  onChange={(e) => setDropoffLoc(e.target.value)}
-                  placeholder="e.g., Los Angeles, CA"
-                  className="w-full px-3 py-2 bg-zinc-900 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                type="text" 
+                required
+                value={dropoffLoc}
+                onChange={(e) => setDropoffLoc(e.target.value)}
+                placeholder="e.g., Los Angeles, CA"
+                className="w-full px-3 py-2 bg-zinc-900 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
-              </div>
+            </div>
 
-              <div>
+            <div>
                 <label className="block text-sm font-semibold text-zinc-200 mb-1">Cycle Hours Used (out of 70)</label>
                 <input 
-                  type="number" 
-                  min="0"
-                  max="70"
-                  step="0.1"
-                  required
-                  value={cycleHours}
-                  onChange={(e) => setCycleHours(e.target.value)}
-                  className="w-full px-3 py-2 bg-zinc-900 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                type="number" 
+                min="0"
+                max="70"
+                step="0.1"
+                required
+                value={cycleHours}
+                onChange={(e) => setCycleHours(e.target.value)}
+                className="w-full px-3 py-2 bg-zinc-900 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
-              </div>
+            </div>
 
-              <button 
+            <button 
                 type="submit" 
                 disabled={loading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg hover:shadow-blue-900/30"
-              >
+            >
                 {loading ? (
-                  <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
                 ) : (
-                  <>Calculate Route & Logs</>
+                <>Calculate Route & Logs</>
                 )}
-              </button>
+            </button>
             </form>
-          </div>
+        </div>
 
-          {error && (
+        {error && (
             <div className="bg-red-950 border-l-4 border-red-500 p-4 rounded-r-lg flex items-start gap-3 border border-red-900/30">
-              <AlertTriangle className="text-red-400 mt-0.5 flex-shrink-0" size={20} />
-              <p className="text-red-200 text-sm font-medium">{error}</p>
+            <AlertTriangle className="text-red-400 mt-0.5 flex-shrink-0" size={20} />
+            <p className="text-red-200 text-sm font-medium">{error}</p>
             </div>
-          )}
+        )}
 
-          {routeData && (
+        {routeData && (
             <div className="bg-zinc-950 text-white p-6 rounded-xl shadow-lg border border-zinc-850">
-              <h3 className="text-sm uppercase tracking-wider text-slate-400 font-bold mb-4">Trip Summary</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <h3 className="text-sm uppercase tracking-wider text-slate-400 font-bold mb-4">Trip Summary</h3>
+            <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-slate-400 text-xs">Total Distance</p>
-                  <p className="text-2xl font-bold text-white">{routeData.distance} <span className="text-sm font-normal text-slate-400">mi</span></p>
+                <p className="text-slate-400 text-xs">Total Distance</p>
+                <p className="text-2xl font-bold text-white">{routeData.distance} <span className="text-sm font-normal text-slate-400">mi</span></p>
                 </div>
                 <div>
-                  <p className="text-slate-400 text-xs">Est. Drive Time</p>
-                  <p className="text-2xl font-bold text-blue-400">{routeData.duration} <span className="text-sm font-normal text-slate-400">hr</span></p>
+                <p className="text-slate-400 text-xs">Est. Drive Time</p>
+                <p className="text-2xl font-bold text-blue-400">{routeData.duration} <span className="text-sm font-normal text-slate-400">hr</span></p>
                 </div>
-              </div>
-              <div className="mt-6 pt-4 border-t border-zinc-800 space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-                  <span className="text-slate-300 truncate font-medium">Start: {routeData.waypoints[0].name}</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                  <span className="text-slate-300 truncate font-medium">Pickup: {routeData.waypoints[1].name}</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                  <span className="text-slate-300 truncate font-medium">Drop: {routeData.waypoints[2].name}</span>
-                </div>
-              </div>
             </div>
-          )}
+            <div className="mt-6 pt-4 border-t border-zinc-800 space-y-3">
+                <div className="flex items-center gap-3 text-sm">
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+                <span className="text-slate-300 truncate font-medium">Start: {routeData.waypoints[0].name}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                <span className="text-slate-300 truncate font-medium">Pickup: {routeData.waypoints[1].name}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                <span className="text-slate-300 truncate font-medium">Drop: {routeData.waypoints[2].name}</span>
+                </div>
+            </div>
+            </div>
+        )}
         </div>
 
         {/* Right Column: Map & Logs */}
         <div className="lg:col-span-8 space-y-8">
-          {/* Map Container */}
-          <div className="bg-zinc-950 p-2 rounded-xl border border-zinc-800 shadow-inner h-[400px] relative z-0">
+        {/* Map Container */}
+        <div className="bg-zinc-950 p-2 rounded-xl border border-zinc-800 shadow-inner h-[400px] relative z-0">
             {!leafletReady && (
-              <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 z-10 rounded-xl">
+            <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 z-10 rounded-xl">
                 <span className="animate-pulse text-zinc-400 font-medium">Loading Map Engine...</span>
-              </div>
+            </div>
             )}
             <div ref={mapRef} className="w-full h-full rounded-lg z-0"></div>
-          </div>
-
-          {/* Logs Container */}
-          {generatedLogs && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2 mb-4">
-                <FileText className="text-blue-500" />
-                Generated Electronic Logs
-              </h2>
-              {Object.keys(generatedLogs).map(day => (
-                <LogSheet key={day} dayNumber={day} logs={generatedLogs[day]} />
-              ))}
-            </div>
-          )}
         </div>
 
-      </main>
+        {/* Logs Container */}
+        {generatedLogs && (
+            <div className="space-y-4">
+            <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2 mb-4">
+                <FileText className="text-blue-500" />
+                Generated Electronic Logs
+            </h2>
+            {Object.keys(generatedLogs).map(day => (
+                <LogSheet key={day} dayNumber={day} logs={generatedLogs[day]} />
+            ))}
+            </div>
+        )}
+        </div>
+
+    </main>
     </div>
-  );
+);
 }
