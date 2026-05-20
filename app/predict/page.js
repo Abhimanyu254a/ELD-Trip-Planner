@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Navigation, Clock, Truck, FileText, AlertTriangle } from 'lucide-react';
 
-// --- HOS Business Logic Engine ---
+// --------HOS Business Logic Engine-------
 const calculateHOSLogs = (routeDurationHours,routeDistanceMiles,startCycleHours) => {
     const logs = [];
 
@@ -555,8 +555,8 @@ return (
         </div>
 
         {error && (
-            <div className="bg-red-950 border-l-4 border-red-500 p-4 rounded-r-lg flex items-start gap-3 border border-red-900/30">
-            <AlertTriangle className="text-red-400 mt-0.5 flex-shrink-0" size={20} />
+            <div className="bg-red-950 border-l-4 border-red-500 p-4 rounded-r-lg flex items-start gap-3 border ">
+            <AlertTriangle className="text-red-400 mt-0.5 " size={20} />
             <p className="text-red-200 text-sm font-medium">{error}</p>
             </div>
         )}

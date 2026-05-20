@@ -31,7 +31,7 @@ return (
         {/* Subtext */}
         <p className="text-zinc-400 text-xl leading-relaxed max-w-md">
         Calculate routes, fuel stops, mandatory breaks, remaining cycle hours
-        and generate driver logs — from a single trip plan.
+        and generate driver logs from a single trip plan.
         </p>
 
         {/* CTA buttons */}
@@ -136,7 +136,7 @@ const features = [
     {
     num: "04",
     title: "ELD Log Sheets",
-    desc: "Generates filled paper-style driver daily log sheets — multiple sheets for multi-day trips.",
+    desc: "Generates filled paper-style driver daily log sheets  multiple sheets for multi-day trips.",
     },
 ];
 
