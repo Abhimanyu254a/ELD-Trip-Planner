@@ -174,6 +174,7 @@ return (
 
 // ------------------ Footer -------------------
 export function Footer() {
+    const router = useRouter();
 return (
     <section className="bg-indigo-950/40 border-y border-indigo-900/40 px-6 py-16">
     <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-6">
@@ -184,7 +185,8 @@ return (
         Enter your trip details and get a full ELD-compliant route with log
         sheets in seconds.
         </p>
-        <button className="px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-lg transition-colors duration-200">
+        <button className="px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-lg transition-colors duration-200"
+        onClick={()=>{router.push('/predict')}}>
         Start Planning →
         </button>
     </div>
@@ -199,7 +201,6 @@ return (
     <HeroSection />
     <Features />
     <Works />
-
     <Footer />
     </main>
 );
